@@ -1,5 +1,9 @@
-import { DataTypes, Sequelize } from "sequelize";
-const sequelize = new Sequelize(process.env.DATABASE_URL);
+import * as dotenv from "dotenv";
+dotenv.config();
+import { DataTypes, Sequelize, } from "sequelize";
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+});
 try {
     await sequelize.authenticate();
     console.log("Connection has been established successfully.");
@@ -20,17 +24,28 @@ const User = sequelize.define("User", {
     username: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
     },
     password: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-}, {});
+}, {
+    scopes: {
+        withoutPassword: {
+            attributes: { exclude: ["password"] },
+        },
+    },
+});
 const Post = sequelize.define("Post", {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
+    },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     content: {
         type: DataTypes.TEXT,

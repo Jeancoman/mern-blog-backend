@@ -6,7 +6,8 @@
   "main": "src/index.ts",
   "scripts": {
     "tsc": "tsc",
-    "dev": "nodemon --exec ts-node src/index.ts"
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "start": "node build/index.js"
   },
   "keywords": [],
   "author": "Jean Bolívar",
