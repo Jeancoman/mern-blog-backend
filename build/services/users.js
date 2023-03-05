@@ -1,4 +1,4 @@
-import { User } from "../config/database.js";
+import { User } from "../config/database";
 const createUser = async (accountName, username, password) => {
     try {
         const user = await User.create({

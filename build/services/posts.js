@@ -1,4 +1,4 @@
-import { Post, User } from "../config/database.js";
+import { Post, User } from "../config/database";
 const createPost = async (UserId, title, content, status) => {
     try {
         const post = await Post.create({
