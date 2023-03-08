@@ -29,6 +29,7 @@ interface UserModel
   accountName: string;
   username: string;
   password: string;
+  userType: CreationOptional<string>;
 }
 
 interface PostModel
@@ -62,6 +63,10 @@ const User = sequelize.define<UserModel>(
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    userType: {
+      type: DataTypes.ENUM("user", "admin"),
+      defaultValue: "user",
     },
   },
   {

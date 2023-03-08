@@ -1,4 +1,4 @@
-import { Post, User } from "../config/database";
+import { Post, User } from "../config/database.js";
 const createPost = async (UserId, title, content, status) => {
     try {
         const post = await Post.create({
@@ -45,6 +45,23 @@ const deletePost = async (id) => {
         return 0;
     }
 };
+const findPublishedPostsByUserId = async (UserId) => {
+    try {
+        const posts = await Post.findAll({
+            where: {
+                // @ts-ignore
+                UserId,
+                status: "published",
+            },
+            order: [["createdAt", "DESC"]],
+            include: User.scope("withoutPassword"),
+        });
+        return posts;
+    }
+    catch {
+        return null;
+    }
+};
 const findPostsByUserId = async (UserId) => {
     try {
         const posts = await Post.findAll({
@@ -86,4 +103,4 @@ const findPosts = async () => {
     });
     return posts;
 };
-export { createPost, updatePost, deletePost, findPostsByUserId, findPostById, findPosts, };
+export { createPost, updatePost, deletePost, findPublishedPostsByUserId, findPostsByUserId, findPostById, findPosts, };

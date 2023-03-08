@@ -3,7 +3,7 @@ import { User } from "../config/database";
 const createUser = async (
   accountName: string,
   username: string,
-  password: string
+  password: string,
 ) => {
   try {
     const user = await User.create({
@@ -53,6 +53,7 @@ const authenticate = async (username: string, password: string) => {
           id: user.id,
           accountName: user.accountName,
           username: user.username,
+          userType: user.userType
         },
         isValidCredentials: true,
       };

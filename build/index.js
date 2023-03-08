@@ -2,8 +2,8 @@ import * as dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import { createPost, deletePost, findPosts, findPostById, findPostsByUserId, updatePost, } from "./services/posts";
-import { authenticate, createUser, findUserByUsername } from "./services/users";
+import { createPost, deletePost, findPosts, findPostById, updatePost, findPublishedPostsByUserId, findPostsByUserId, } from "./services/posts.js";
+import { authenticate, createUser, findUserById, findUserByUsername, } from "./services/users.js";
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -68,23 +68,61 @@ app.post("/api/users", (req, res) => {
             res.status(201).json(user);
         }
         else {
-            res
-                .status(500)
-                .json({ message: "User could not be created" });
+            res.status(500).json({ message: "User could not be created" });
         }
     });
 });
-app.get("/api/users/:id/posts", (req, res) => {
-    findPostsByUserId(req.params.id).then((posts) => {
-        if (posts) {
-            res.status(200).json(posts);
+app.get("/api/users/:username/posts", async (req, res) => {
+    const sessionId = req.header("X-Session-Id");
+    const user = await findUserByUsername(req.params.username);
+    if (!user) {
+        return res.status(404).json({ message: "This user does not exist" });
+    }
+    if (!sessionId) {
+        findPublishedPostsByUserId(user.id).then((posts) => {
+            if (posts) {
+                return res.status(200).json(posts);
+            }
+            else {
+                return res.status(404).json({ message: "This user has no posts" });
+            }
+        });
+    }
+    if (sessionId) {
+        if (sessionId === user.id) {
+            findPostsByUserId(user.id).then((posts) => {
+                if (posts) {
+                    return res.status(200).json(posts);
+                }
+                else {
+                    return res.status(404).json({ message: "This user has no posts" });
+                }
+            });
         }
         else {
-            res
-                .status(404)
-                .json({ message: "This user has no posts or does not exist" });
+            const sessionUser = await findUserById(sessionId);
+            if (sessionUser?.userType === "admin") {
+                findPostsByUserId(user.id).then((posts) => {
+                    if (posts) {
+                        return res.status(200).json(posts);
+                    }
+                    else {
+                        return res.status(404).json({ message: "This user has no posts" });
+                    }
+                });
+            }
+            else {
+                findPublishedPostsByUserId(user.id).then((posts) => {
+                    if (posts) {
+                        return res.status(200).json(posts);
+                    }
+                    else {
+                        return res.status(404).json({ message: "This user has no posts" });
+                    }
+                });
+            }
         }
-    });
+    }
 });
 app.get("/api/posts", (_req, res) => {
     findPosts().then((posts) => {
@@ -125,7 +163,7 @@ app.get("/api/posts/:id", (req, res) => {
             res.status(200).json(post);
         }
         else {
-            res.status(404).json({ message: "This post does not exist" });
+            res.status(404).json({ message: "This user has no posts" });
         }
     });
 });
@@ -142,6 +180,32 @@ app.delete("/api/posts/:id", async (req, res) => {
     }
     // @ts-ignore
     if (sessionId !== post?.getDataValue("UserId")) {
+        return res
+            .status(403)
+            .json({ message: "Not authorized to delete this post" });
+    }
+    deletePost(post.id).then(() => {
+        res.status(204).json({ message: "Operation completed" });
+    });
+});
+app.delete("/admin/api/posts/:id", async (req, res) => {
+    const post = await findPostById(req.params.id);
+    const sessionId = req.header("X-Session-Id");
+    if (!post) {
+        return res.status(404).json({ message: "This post does not exist" });
+    }
+    if (!sessionId) {
+        return res
+            .status(403)
+            .json({ message: "Not authorized to delete this post" });
+    }
+    const user = await findUserById(sessionId);
+    if (!user) {
+        return res
+            .status(403)
+            .json({ message: "Not authorized to delete this post" });
+    }
+    if (user.userType !== "admin") {
         return res
             .status(403)
             .json({ message: "Not authorized to delete this post" });
@@ -167,6 +231,47 @@ app.patch("/api/posts/:id", async (req, res) => {
         return res
             .status(403)
             .json({ message: "Not authorized to modify this post" });
+    }
+    if (!body.title) {
+        return res.status(400).json({ message: "Title missing" });
+    }
+    if (!body.content) {
+        return res.status(400).json({ message: "Content missing" });
+    }
+    if (!body.status) {
+        return res.status(400).json({ message: "Status missing" });
+    }
+    updatePost(post.id, body.title, body.content, body.status).then((post) => {
+        if (post) {
+            res.status(200).json(post);
+        }
+        else {
+            res.status(500).json({ message: "Post could not be updated" });
+        }
+    });
+});
+app.patch("/admin/api/posts/:id", async (req, res) => {
+    const body = req.body;
+    const post = await findPostById(req.params.id);
+    const sessionId = req.header("X-Session-Id");
+    if (!post) {
+        return res.status(404).json({ message: "This post does not exist" });
+    }
+    if (!sessionId) {
+        return res
+            .status(403)
+            .json({ message: "Not authorized to modify this post" });
+    }
+    const user = await findUserById(sessionId);
+    if (!user) {
+        return res
+            .status(403)
+            .json({ message: "Not authorized to delete this post" });
+    }
+    if (user.userType !== "admin") {
+        return res
+            .status(403)
+            .json({ message: "Not authorized to delete this post" });
     }
     if (!body.title) {
         return res.status(400).json({ message: "Title missing" });

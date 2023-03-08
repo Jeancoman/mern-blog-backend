@@ -1,4 +1,4 @@
-import { User } from "../config/database";
+import { User } from "../config/database.js";
 const createUser = async (accountName, username, password) => {
     try {
         const user = await User.create({
@@ -47,6 +47,7 @@ const authenticate = async (username, password) => {
                     id: user.id,
                     accountName: user.accountName,
                     username: user.username,
+                    userType: user.userType
                 },
                 isValidCredentials: true,
             };

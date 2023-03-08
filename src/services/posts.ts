@@ -59,6 +59,23 @@ const deletePost = async (id: string) => {
   }
 };
 
+const findPublishedPostsByUserId = async (UserId: string) => {
+  try {
+    const posts = await Post.findAll({
+      where: {
+        // @ts-ignore
+        UserId,
+        status: "published",
+      },
+      order: [["createdAt", "DESC"]],
+      include: User.scope("withoutPassword"),
+    });
+    return posts;
+  } catch {
+    return null;
+  }
+};
+
 const findPostsByUserId = async (UserId: string) => {
   try {
     const posts = await Post.findAll({
@@ -105,6 +122,7 @@ export {
   createPost,
   updatePost,
   deletePost,
+  findPublishedPostsByUserId,
   findPostsByUserId,
   findPostById,
   findPosts,
