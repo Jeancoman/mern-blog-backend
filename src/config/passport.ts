@@ -110,7 +110,7 @@ passport.use(
           return done(null, userExists);
         }
 
-        const user = await UserService.createWithOAuth2(username, profile.displayName, profile.coverPhoto);
+        const user = await UserService.createWithOAuth2(username, profile.displayName, profile.picture);
 
         return done(null, user);
       } catch (error) {

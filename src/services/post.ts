@@ -22,7 +22,7 @@ const updateById = async (
   published: boolean
 ) => {
   const post = await Post.findByIdAndUpdate(
-    { id },
+    { _id: id },
     {
       title,
       content,
@@ -38,6 +38,11 @@ const deleteById = async (id: string) => {
 };
 
 const findById = async (id: string) => {
+  const post = await Post.findById({ _id: id });
+  return post;
+};
+
+const findByIdAndReturnUser = async (id: string) => {
   const post = await Post.findById({ _id: id })
     .populate("user", "-password")
     .exec();
@@ -80,6 +85,7 @@ const PostService = {
   updateById,
   deleteById,
   findById,
+  findByIdAndReturnUser,
   findAll,
   findAllPublished,
   findAllByUserId,

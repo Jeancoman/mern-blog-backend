@@ -9,8 +9,16 @@ router.post(
   "/signup",
   passport.authenticate("local-signup", { session: false }),
   (req, res) => {
-    res.json({
-      user: req.user,
+    const user = req.user;
+    // @ts-ignore
+    const { password, ...other } = user._doc;
+    jwt.sign({ user: other }, SECRET_KEY, { expiresIn: "30d" }, (err, token) => {
+      if (err) {
+        return res.status(401).json("Login unsucessful");
+      }
+      res.status(200).json({
+        token,
+      });
     });
   }
 );
@@ -24,7 +32,7 @@ router.post(
     const user = req.user;
     // @ts-ignore
     const { password, ...other } = user._doc;
-    jwt.sign({ user: other }, SECRET_KEY, { expiresIn: "1h" }, (err, token) => {
+    jwt.sign({ user: other }, SECRET_KEY, { expiresIn: "30d" }, (err, token) => {
       if (err) {
         return res.status(401).json("Login unsucessful");
       }
@@ -44,20 +52,18 @@ router.get(
   "/google/redirect",
   passport.authenticate("google", {
     session: false,
-    successRedirect: FRONTEND_URL,
     failureRedirect: `${FRONTEND_URL}/login`,
   }),
   (req, res) => {
     const user = req.user;
     // @ts-ignore
     const { password, ...other } = user._doc;
-    jwt.sign({ user: other }, SECRET_KEY, { expiresIn: "1h" }, (err, token) => {
+    jwt.sign({ user: other }, SECRET_KEY, { expiresIn: "30d" }, (err, token) => {
       if (err) {
         return res.status(401).json("Login unsucessful");
       }
-      res.status(200).json({
-        token,
-      });
+      res.cookie('auth', token); 
+      res.redirect(FRONTEND_URL);
     });
   }
 );
