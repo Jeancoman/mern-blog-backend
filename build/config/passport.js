@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import UserService from "../services/user.js";
-import { SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "./env.js";
+import { SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URI } from "./env.js";
 import logger from "../utils/logger.js";
 import { generateFromEmail } from "unique-username-generator";
 passport.use("local-signup", new LocalStrategy({
@@ -64,7 +64,7 @@ passport.use(new JwtStrategy({
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "/api/auth/google/redirect",
+    callbackURL: REDIRECT_URI,
     passReqToCallback: true,
 }, async (_req, _accessToken, _refreshToken, profile, done) => {
     try {
