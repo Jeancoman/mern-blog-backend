@@ -43,8 +43,7 @@ router.get("/google/redirect", passport.authenticate("google", {
         if (err) {
             return res.status(401).json("Login unsucessful");
         }
-        res.cookie('auth', token, { sameSite:"none", secure: true });
-        res.redirect(FRONTEND_URL);
+        res.redirect(`${FRONTEND_URL}#auth_token=${token}`);
     });
 });
 export default router;
